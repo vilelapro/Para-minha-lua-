@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para minha Lua</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --night:#0d1230; --night2:#1b2250; --moon:#e8ecff; --paper:#f2eef9; --ink:#2a2f5a;
+  --env-back:#2b3470; --env-front:#3a4488; --env-flap:#4b57a6; --rose:#e39ab0; --rose2:#b9607d;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(120% 90% at 50% 0%,var(--night2),var(--night) 70%);
+  color:var(--moon); font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif; overflow:hidden;
+}
+.stars{position:fixed;inset:0;pointer-events:none;
+  background-image:
+   radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 28% 62%,#cfd8ff,transparent),
+   radial-gradient(1.5px 1.5px at 44% 12%,#fff,transparent),radial-gradient(1px 1px at 63% 38%,#cfd8ff,transparent),
+   radial-gradient(1.5px 1.5px at 78% 22%,#fff,transparent),radial-gradient(1px 1px at 88% 70%,#cfd8ff,transparent),
+   radial-gradient(1px 1px at 20% 86%,#fff,transparent),radial-gradient(1.5px 1.5px at 56% 80%,#cfd8ff,transparent),
+   radial-gradient(1px 1px at 94% 8%,#fff,transparent),radial-gradient(1px 1px at 6% 48%,#cfd8ff,transparent);
+  opacity:.8}
+.stage{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2rem}
+.title{font-family:"Pinyon Script","Snell Roundhand",cursive;font-size:2.2rem;margin:0;text-align:center;transition:opacity 1s}
+.env{position:relative;width:min(84vw,360px);aspect-ratio:3/2;cursor:pointer;transition:opacity 1s,transform 1s;-webkit-tap-highlight-color:transparent}
+.env:focus-visible{outline:2px solid var(--moon);outline-offset:8px}
+.env .back{position:absolute;inset:0;background:var(--env-back);border-radius:6px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.env .sheet{position:absolute;left:6%;right:6%;top:6%;bottom:6%;background:var(--paper);border-radius:3px;z-index:2;transition:transform 1.1s cubic-bezier(.3,.7,.2,1) .55s}
+.env .front{position:absolute;inset:0;background:var(--env-front);z-index:3;border-radius:6px;clip-path:polygon(0 0,50% 56%,100% 0,100% 100%,0 100%)}
+.env .flap{position:absolute;left:0;right:0;top:0;height:56%;background:var(--env-flap);z-index:4;transform-origin:top;
+  clip-path:polygon(0 0,100% 0,50% 100%);transform:perspective(900px) rotateX(0);transition:transform .9s ease,z-index 0s .45s}
+.env .seal{position:absolute;left:50%;top:56%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 35% 30%,var(--rose),var(--rose2));box-shadow:0 4px 12px rgba(0,0,0,.4);
+  display:grid;place-items:center;transition:opacity .5s,transform .5s;animation:beat 2.4s ease-in-out infinite}
+.env .seal svg{width:28px;height:28px}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.env.open{cursor:default}
+.env.open .flap{transform:perspective(900px) rotateX(180deg);z-index:1}
+.env.open .sheet{transform:translateY(-52%)}
+.env.open .seal{opacity:0;transform:scale(.5);animation:none}
+.env.gone{opacity:0;transform:translateY(40px);pointer-events:none}
+.hint{font-style:italic;font-size:1.15rem;opacity:.75;margin:0;transition:opacity .6s}
+.hint.off,.title.off{opacity:0}
+.reading{position:fixed;inset:0;display:grid;place-items:center;padding:1.2rem;opacity:0;pointer-events:none;transition:opacity 1.2s}
+.reading.show{opacity:1;pointer-events:auto}
+.card{background:var(--paper);color:var(--ink);width:min(100%,520px);max-height:86vh;overflow:auto;border-radius:6px;
+  padding:2rem 1.7rem 1.6rem;box-shadow:0 24px 60px rgba(0,0,0,.55);box-sizing:border-box}
+.card p{font-size:1.28rem;line-height:1.7;margin:0 0 1.05rem;opacity:0;filter:blur(4px);transition:opacity 1.6s,filter 1.6s}
+.card p.in{opacity:1;filter:none}
+.card .to,.card .sign{font-family:"Pinyon Script","Snell Roundhand",cursive;font-size:2.1rem;line-height:1.3}
+.card .sign{margin-top:1.4rem;margin-bottom:.4rem}
+.again{display:block;margin:.8rem auto 0;background:none;border:1px solid var(--ink);color:var(--ink);font:inherit;font-size:1.05rem;
+  padding:.4rem 1.1rem;border-radius:999px;cursor:pointer;opacity:0;transition:opacity 1s}
+.again.in{opacity:.8}
+.mute{position:fixed;top:calc(env(safe-area-inset-top,0px) + .8rem);right:.8rem;width:42px;height:42px;border-radius:50%;
+  border:1px solid rgba(232,236,255,.35);background:rgba(13,18,48,.5);color:var(--moon);font-size:1.1rem;cursor:pointer;display:none}
+.mute.on{display:block}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;transition-delay:0s!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<button class="mute" id="mute" aria-label="Som ligado ou desligado">♪</button>
+
+<main class="stage">
+  <h1 class="title" id="title">Para minha Lua</h1>
+  <div class="env" id="env" role="button" tabindex="0" aria-label="Abrir a carta">
+    <div class="back"></div>
+    <div class="sheet"></div>
+    <div class="front"></div>
+    <div class="flap"></div>
+    <div class="seal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#fff4f7"/></svg></div>
+  </div>
+  <p class="hint" id="hint">toque no envelope para abrir</p>
+</main>
+
+<section class="reading" id="reading" aria-live="polite">
+  <div class="card" id="card"></div>
+</section>
+
+<script>
+// ✏️ Edite aqui o texto da carta
+var GREETING = "Lua, meu amor,";
+var LINES = [
+  "Existem pessoas que chegam e mudam a cor do céu. Você chegou e acendeu o meu.",
+  "Eu poderia escrever mil linhas de código pra te dizer o que sinto, mas nenhum sistema do mundo compila tanto amor.",
+  "Obrigado por cada riso, por cada abraço, e por ser o lugar pra onde eu sempre quero voltar.",
+  "Do mesmo jeito que a lua cuida da noite sem fazer barulho, você cuida de mim.",
+  "Eu te escolho hoje, amanhã e em todas as versões do futuro.",
+  "Te amo, meu amor."
+];
+var SIGN = "Sempre seu.";
+
+var env = document.getElementById("env"), hint = document.getElementById("hint"), title = document.getElementById("title"),
+    reading = document.getElementById("reading"), card = document.getElementById("card"), mute = document.getElementById("mute");
+var timers = [];
+
+/* ---- Música: caixinha de música gerada no próprio navegador ---- */
+var ctx = null, master = null, playing = false, muted = false, nextT = 0, loopTimer = null, bar = 0;
+var CH = [[220,261.63,329.63,440],[174.61,220,261.63,349.23],[261.63,329.63,392,523.25],[196,246.94,293.66,392]];
+var ORDER = [0,1,2,3,0,1,2,3];
+function setupAudio(){
+  try{
+    var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.2;
+    var d = ctx.createDelay(1); d.delayTime.value = 0.36; var fb = ctx.createGain(); fb.gain.value = 0.32;
+    var wet = ctx.createGain(); wet.gain.value = 0.45;
+    master.connect(ctx.destination); master.connect(d); d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(ctx.destination);
+  }catch(e){ ctx = null; }
+}
+function bell(f,t,len){
+  var o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f*3.01;
+  var g2 = ctx.createGain(); g2.gain.value = 0.18; o2.connect(g2); g2.connect(g); o.connect(g); g.connect(master);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.5,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+  o.start(t); o2.start(t); o.stop(t+len+0.05); o2.stop(t+len+0.05);
+}
+function scheduleBar(){
+  if(!playing || !ctx) return;
+  var c = CH[ORDER[bar % ORDER.length]], step = 0.42, seq = [0,1,2,3,2,1,2,3];
+  for(var i=0;i<8;i++){ bell(c[seq[i]] * (i===3||i===7 ? 1 : 1), nextT + i*step, 1.8); }
+  if(bar % 2 === 0) bell(c[0]/2, nextT, 2.6);
+  nextT += step*8; bar++;
+  loopTimer = setTimeout(scheduleBar, Math.max(200,(nextT - ctx.currentTime - 0.8)*1000));
+}
+function startMusic(){
+  if(!ctx) setupAudio(); if(!ctx) return;
+  if(ctx.state === "suspended") ctx.resume();
+  playing = true; nextT = ctx.currentTime + 0.2; bar = 0; scheduleBar(); mute.classList.add("on");
+}
+mute.addEventListener("click", function(){
+  if(!ctx) return; muted = !muted;
+  master.gain.setTargetAtTime(muted ? 0 : 0.2, ctx.currentTime, 0.1); mute.style.opacity = muted ? .5 : 1;
+});
+
+/* ---- Abrir a carta ---- */
+function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
+function openLetter(){
+  if(env.classList.contains("open")) return;
+  env.classList.add("open"); hint.classList.add("off"); title.classList.add("off");
+  startMusic();
+  later(function(){ env.classList.add("gone"); }, 2100);
+  later(showLetter, 2500);
+}
+function showLetter(){
+  card.innerHTML = "";
+  var g = document.createElement("p"); g.className = "to"; g.textContent = GREETING; card.appendChild(g);
+  var ps = [g];
+  LINES.forEach(function(t){ var p = document.createElement("p"); p.textContent = t; card.appendChild(p); ps.push(p); });
+  var s = document.createElement("p"); s.className = "sign"; s.textContent = SIGN; card.appendChild(s); ps.push(s);
+  var b = document.createElement("button"); b.className = "again"; b.textContent = "ler de novo"; card.appendChild(b);
+  b.addEventListener("click", reset);
+  reading.classList.add("show");
+  ps.forEach(function(p,i){ later(function(){ p.classList.add("in"); card.scrollTo({top:card.scrollHeight,behavior:"smooth"}); }, 600 + i*2000); });
+  later(function(){ b.classList.add("in"); }, 600 + ps.length*2000);
+}
+function reset(){
+  timers.forEach(clearTimeout); timers = [];
+  reading.classList.remove("show");
+  later(function(){
+    env.classList.remove("open","gone"); hint.classList.remove("off"); title.classList.remove("off");
+  }, 900);
+}
+env.addEventListener("click", openLetter);
+env.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openLetter(); } });
+</script>
+</body>
+</html>
